@@ -1,5 +1,6 @@
 (ns reaflet.util
-  (:require [reagent.core :as reagent :refer [atom]]))
+  (:require [reagent.core :as reagent :refer [atom]]
+            [leaflet]))
 
 ;;;;;;;;;
 ;; Define the React lifecycle callbacks to manage the LeafletJS
@@ -10,17 +11,17 @@
 (defn- leaflet-did-mount [this]
   "Initialize LeafletJS map for a newly mounted map component."
   (let [mapspec (:mapspec (reagent/state this))
-        leaflet (js/L.map (:id mapspec))
+        leaflet (leaflet/map (:id mapspec))
         view (:view mapspec)
         zoom (:zoom mapspec)]
     (.setView leaflet (clj->js @view) @zoom)
     (doseq [{:keys [type url] :as layer-spec} (:layers mapspec)]
       (let [layer (case type
-                    :tile (js/L.tileLayer
+                    :tile (leaflet/tileLayer
                            url
                            (clj->js {:attribution (:attribution layer-spec)})
                                     )
-                    :wms (js/L.tileLayer.wms
+                    :wms (leaflet/tileLayer.wms
                           url
                           (clj->js {:format "image/png"
                                     :fillOpacity 1.0
