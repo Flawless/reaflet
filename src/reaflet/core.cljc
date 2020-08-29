@@ -36,7 +36,6 @@
 (defn index []
   [:html
    [:head
-    [:script {:src "http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"}]
     [:style style]]
    [:body
     [:div
