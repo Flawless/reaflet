@@ -1,6 +1,7 @@
 (ns reaflet.util
   (:require [reagent.core :as reagent :refer [atom]]
-            [leaflet]))
+            [leaflet]
+            [re-frame.core :as rf]))
 
 ;;;;;;;;;
 ;; Define the React lifecycle callbacks to manage the LeafletJS
@@ -41,8 +42,10 @@
     ;; watcher for pos/zoom atoms
     (.on leaflet "move" (fn [e]
                           (let [c (.getCenter leaflet)]
-                            (reset! zoom (.getZoom leaflet))
-                            (reset! view [(.-lat c) (.-lng c)]))))
+                            (rf/dispatch [:set-zoom-level
+                                          (.getZoom leaflet)])
+                            (rf/dispatch [:set-view-position
+                                          [(.-lat c) (.-lng c)]]))))
     (add-watch view ::view-update
                (fn [_ _ old-view new-view]
                  ;;(.log js/console "change view: " (clj->js old-view) " => " (clj->js new-view) @zoom)
@@ -121,7 +124,7 @@
 ;;;;;;;;;
 ;; The LeafletJS Reagent component.
 
-(defn leaflet [mapspec]
+(defn leaflet-component [mapspec]
   "A LeafletJS map component."
   (reagent/create-class
     {:get-initial-state (fn [_] {:mapspec mapspec})
