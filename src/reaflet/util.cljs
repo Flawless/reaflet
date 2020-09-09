@@ -1,6 +1,6 @@
 (ns reaflet.util
   (:require [reagent.core :as reagent :refer [atom]]
-            [leaflet]
+            [leaflet :as L]
             [re-frame.core :as rf]))
 
 ;;;;;;;;;
@@ -12,17 +12,17 @@
 (defn- leaflet-did-mount [this]
   "Initialize LeafletJS map for a newly mounted map component."
   (let [mapspec (:mapspec (reagent/state this))
-        leaflet (leaflet/map (:id mapspec))
+        leaflet (L/map (:id mapspec) (clj->js (:L-specs mapspec)))
         view (:view mapspec)
         zoom (:zoom mapspec)]
     (.setView leaflet (clj->js @view) @zoom)
     (doseq [{:keys [type url] :as layer-spec} (:layers mapspec)]
       (let [layer (case type
-                    :tile (leaflet/tileLayer
+                    :tile (L/tileLayer
                            url
-                           (clj->js {:attribution (:attribution layer-spec)})
+                           (clj->js (dissoc layer-spec :type :url))
                                     )
-                    :wms (leaflet/tileLayer.wms
+                    :wms (L/tileLayer.wms
                           url
                           (clj->js {:format "image/png"
                                     :fillOpacity 1.0
@@ -78,16 +78,16 @@
 (defmulti create-shape :type)
 
 (defmethod create-shape :polygon [{:keys [coordinates]}]
-  (js/L.polygon (clj->js coordinates)
+  (L.polygon (clj->js coordinates)
                         #js {:color "red"
                              :fillOpacity 0.5}))
 
 (defmethod create-shape :line [{:keys [coordinates]}]
-  (js/L.polyline (clj->js coordinates)
+  (L.polyline (clj->js coordinates)
                  #js {:color "blue"}))
 
 (defmethod create-shape :point [{:keys [coordinates]}]
-  (js/L.circle (clj->js (first coordinates))
+  (L.circle (clj->js (first coordinates))
                10
                #js {:color "green"}))
 
